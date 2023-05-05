@@ -1,6 +1,6 @@
 stage('Deploy to Kubernetes') {
     steps {
-       sh kubectl create deployment hello-minikube --image=kicbase/echo-server:1.0
-       sh kubectl expose deployment hello-minikube --type=NodePort --port=8080
+        sh "kubectl apply -f deployment.yaml"
+        sh "kubectl apply -f service.yaml"
     }
 }
