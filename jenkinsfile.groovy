@@ -35,26 +35,26 @@ pipeline {
                 sh './kubectl apply -f hello-world-service.yml'
             }
         }
-    }
-    post {
-        always {
-            node('minikube') {
-                def crb = """
-                apiVersion: rbac.authorization.k8s.io/v1
-                kind: ClusterRoleBinding
-                metadata:
-                  name: jenkins-admin-binding
-                roleRef:
-                  apiGroup: rbac.authorization.k8s.io
-                  kind: ClusterRole
-                  name: cluster-admin
-                subjects:
-                - kind: ServiceAccount
-                  name: jenkins-admin
-                  namespace: default
-                """
-                writeFile file: 'crb.yaml', text: crb
-                sh './kubectl apply -f crb.yaml'
+        stage('Configure Permissions') {
+            steps {
+                script {
+                    def crb = """
+                    apiVersion: rbac.authorization.k8s.io/v1
+                    kind: ClusterRoleBinding
+                    metadata:
+                      name: jenkins-admin-binding
+                    roleRef:
+                      apiGroup: rbac.authorization.k8s.io
+                      kind: ClusterRole
+                      name: cluster-admin
+                    subjects:
+                    - kind: ServiceAccount
+                      name: jenkins-admin
+                      namespace: default
+                    """
+                    writeFile file: 'crb.yaml', text: crb
+                    sh './kubectl apply -f crb.yaml'
+                }
             }
         }
     }
