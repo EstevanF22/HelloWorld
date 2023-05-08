@@ -10,6 +10,7 @@ pipeline {
               labels:
                 app: jenkins
             spec:
+              serviceAccountName: jenkins-admin
               containers:
               - name: kubectl
                 image: lachlanevenson/k8s-kubectl
@@ -27,14 +28,32 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                script {
-                    def kubectl_version = 'v1.22.5' // replace with desired version
-                    sh "curl -LO https://storage.googleapis.com/kubernetes-release/release/${kubectl_version}/bin/linux/amd64/kubectl"
-                    sh 'chmod +x kubectl'
-                    sh 'kubectl apply -f jenkins-admin-rolebinding.yml'
-                    sh './kubectl apply -f hello-world-deployment.yml'
-                    sh './kubectl apply -f hello-world-service.yml'
-                }
+                sh 'curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"'
+                sh 'chmod +x kubectl'
+                sh 'kubectl apply -f jenkins-admin-rolebinding.yml'
+                sh './kubectl apply -f hello-world-deployment.yml'
+                sh './kubectl apply -f hello-world-service.yml'
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                def crb = """
+                apiVersion: rbac.authorization.k8s.io/v1
+                kind: ClusterRoleBinding
+                metadata:
+                  name: jenkins-admin-binding
+                roleRef:
+                  apiGroup: rbac.authorization.k8s.io
+                  kind: ClusterRole
+                  name: cluster-admin
+                subjects:
+                - kind: ServiceAccount
+                  name: jenkins-admin
+                  namespace: default
+                """
+                sh "./kubectl apply -f - <<EOF\n${crb}\nEOF"
             }
         }
     }
