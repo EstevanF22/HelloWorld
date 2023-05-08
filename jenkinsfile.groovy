@@ -8,7 +8,8 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                sh 'curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"'
+                def kubectl_version = 'v1.22.5' // replace with desired version
+                sh "curl -LO https://storage.googleapis.com/kubernetes-release/release/${kubectl_version}/bin/linux/amd64/kubectl"
                 sh 'chmod +x kubectl'
                 sh 'kubectl apply -f jenkins-admin-rolebinding.yml'
                 sh 'kubectl apply -f hello-world-deployment.yml'
