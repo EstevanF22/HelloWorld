@@ -37,24 +37,9 @@ pipeline {
         }
         stage('Configure Permissions') {
             steps {
-                script {
-                    def crb = """
-                    apiVersion: rbac.authorization.k8s.io/v1
-                    kind: ClusterRoleBinding
-                    metadata:
-                      name: jenkins-admin-binding
-                    roleRef:
-                      apiGroup: rbac.authorization.k8s.io
-                      kind: ClusterRole
-                      name: cluster-admin
-                    subjects:
-                    - kind: ServiceAccount
-                      name: jenkins-admin
-                      namespace: default
-                    """
-                    writeFile file: 'crb.yaml', text: crb
-                    sh './kubectl apply -f crb.yaml'
-                }
+                sh 'curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"'
+                sh 'chmod +x kubectl'
+                sh './kubectl create clusterrolebinding jenkins-admin-binding --clusterrole cluster-admin --serviceaccount=default:jenkins-admin'
             }
         }
     }
