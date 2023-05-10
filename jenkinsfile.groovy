@@ -1,25 +1,4 @@
 pipeline {
-    agent {
-        kubernetes {
-            label 'minikube'
-            defaultContainer 'jnlp'
-            yaml """
-            apiVersion: v1
-            kind: Pod
-            metadata:
-              labels:
-                app: jenkins
-            spec:
-              serviceAccountName: jenkins-admin
-              containers:
-              - name: kubectl
-                image: lachlanevenson/k8s-kubectl
-                command:
-                - cat
-                tty: true
-            """
-        }
-    }
     stages {
         stage('Build') {
             steps {
